@@ -238,7 +238,7 @@ class SimulatorApp:
         ).grid(row=6, column=1, sticky="ew")
 
         ttk.Label(main, text="Send interval (ms)").grid(row=7, column=0, sticky="w")
-        self.interval_ms = tk.IntVar(value=100)
+        self.interval_ms = tk.IntVar(value=250)
         ttk.Entry(main, textvariable=self.interval_ms).grid(row=7, column=1, sticky="ew")
 
         ttk.Label(main, text="CCVS ID/Data").grid(row=8, column=0, sticky="w")
@@ -263,12 +263,10 @@ class SimulatorApp:
         self.connect_button.grid(row=0, column=0, padx=4)
         self.disconnect_button = ttk.Button(buttons, text="Disconnect", command=self.disconnect)
         self.disconnect_button.grid(row=0, column=1, padx=4)
-        self.send_once_button = ttk.Button(buttons, text="Transmit Once", command=self.transmit_once)
-        self.send_once_button.grid(row=0, column=2, padx=4)
         self.start_button = ttk.Button(buttons, text="Start Periodic", command=self.start_periodic)
-        self.start_button.grid(row=0, column=3, padx=4)
+        self.start_button.grid(row=0, column=2, padx=4)
         self.stop_button = ttk.Button(buttons, text="Stop Periodic", command=self.stop_periodic)
-        self.stop_button.grid(row=0, column=4, padx=4)
+        self.stop_button.grid(row=0, column=3, padx=4)
 
         self._update_button_states()
         self.refresh_preview()
@@ -312,7 +310,7 @@ class SimulatorApp:
         self.status_text.set("Status: Disconnected")
         self._update_button_states()
 
-    def transmit_once(self) -> None:
+    def _transmit_current_frames(self) -> None:
         if not self.device:
             return
         for frame_id, data in self.current_frames():
@@ -334,11 +332,11 @@ class SimulatorApp:
         try:
             interval = max(10, int(self.interval_ms.get()))
         except tk.TclError:
-            interval = 100
+            interval = 250
         self.send_job = self.root.after(interval, self._send_and_reschedule)
 
     def _send_and_reschedule(self) -> None:
-        self.transmit_once()
+        self._transmit_current_frames()
         self._schedule_send()
 
     def current_ccvs_frame(self) -> tuple[int, list[int]]:
@@ -393,7 +391,6 @@ class SimulatorApp:
         if self.is_connected:
             self.connect_button.state(["disabled"])
             self.disconnect_button.state(["!disabled"])
-            self.send_once_button.state(["!disabled"])
             if self.send_job is None:
                 self.start_button.state(["!disabled"])
                 self.stop_button.state(["disabled"])
@@ -403,7 +400,6 @@ class SimulatorApp:
         else:
             self.connect_button.state(["!disabled"])
             self.disconnect_button.state(["disabled"])
-            self.send_once_button.state(["disabled"])
             self.start_button.state(["disabled"])
             self.stop_button.state(["disabled"])
 
