@@ -1,81 +1,75 @@
 # dms_simulator
 
-## CCVS USB-CAN Simulator
+## J1939 USB-CAN Simulator
 
-`dms_simulator.py` provides a Tkinter UI to transmit the FMS CCVS message (PGN 0xFEF1) for wheel-based speed,
-parking brake switch, and brake switch using the `ECanVci.dll` interface described in `USBCAN Interface Library.docx`.
+`dms_simulator.py` now simulates only the following J1939 parameters:
 
-### Features
+- **Speed**: PGN `0xFEF1` / SPN `84` (Wheel-Based Vehicle Speed)
+- **Gear**: PGN `0xF005` / SPN `523` (Transmission Current Gear)
+- **Turn Signals**: PGN `0xFE41` / SPN `2369` (Right), SPN `2367` (Left)
+- **Open Doors**: PGN `0xFE4E` / SPN `1821` (Position of Doors)
 
-- Wheel-based vehicle speed (integer value stored in byte 3, byte 2 set to 0).
-- Parking brake switch and service brake switch (on/off).
-- Source address defaults to `0x00`.
-- Priority defaults to `6` (J1939 priority bits, which yields `0x18FEF100` for CCVS).
+All older simulated parameters/frames were removed from the simulator UI and transmit loop.
 
-### Usage
+## Usage
 
-1. Place `ECanVci.dll` next to `dms_simulator.py` or provide the full path in the UI. The app shows the resolved full path so you can confirm where it is looking.
-2. Run the app on Windows:
+1. Place `ECanVci.dll` next to `dms_simulator.py` (or provide a full DLL path in the app).
+2. Run on Windows:
 
 ```bash
 python dms_simulator.py
 ```
 
-3. The app uses fixed 250 kbps timing values (Timing0 `01`, Timing1 `1C`) and fixed device/channel settings (USBCAN-II, device 0, channel 0).
-4. Click **Connect**, then use **Transmit Once** or **Start Periodic**.
+3. Click **Connect**.
+4. Set the values for speed, gear, turn signals, and door position.
+5. Use **Transmit Once** or **Start Periodic**.
 
-### Signal Encoding Notes
+## J1939 Encoding Used
 
-The simulator encodes wheel-based vehicle speed as an integer in byte 3 (byte 2 set to 0). Parking brake uses byte 1
-and service brake uses byte 4 with two-bit switch fields; other bytes are set to `0xFF` (not available). Adjust the bit
-placement in `build_ccvs_data` if your receiver expects different CCVS bit positions.
+### 1) Speed (PGN `0xFEF1`, SPN `84`)
 
-### CAN Field Encoding/Decoding Reference
+- Data length: 2 bytes
+- Resolution: `1/256 km/h` per bit
+- Range clamped in app to `0..250.996 km/h`
+- Encoded as little-endian raw value in bytes 2-3 of the 8-byte payload
 
-This section describes how every field the simulator writes or reads is encoded/decoded.
+### 2) Gear (PGN `0xF005`, SPN `523`)
 
-#### Transmitted frames (writes)
+- Data length: 1 byte
+- Resolution: `1 gear value/bit`, offset `-125`
+- App options:
+  - Reverse -> raw `124`
+  - Neutral -> raw `125`
+  - Drive -> raw `126`
+  - Park -> raw `251`
+- Encoded in byte 4
 
-- **CCVS (PGN 0xFEF1, ID `0x18FEF100`)**
-  - **Byte 0:** `0xFF` (not available).
-  - **Byte 1:** `0x00` (reserved/unused by this simulator).
-  - **Byte 2:** wheel-based vehicle speed as an unsigned integer (0–255). Input is clamped to this range.
-  - **Bytes 3–7:** `0xFF` (not available).
-  - Source: `build_ccvs_data` in `dms_simulator.py`.
-- **OEL (PGN 0xFDCC, ID `0x18FDCC42`)**
-  - **Byte 1:** high nibble fixed to `0xF`, low nibble encodes turn signal state:
-    - `0x0` = Off
-    - `0x1` = Left
-    - `0x2` = Right
-  - **All other bytes:** `0xFF` (not available).
-  - Source: `build_oel_data` in `dms_simulator.py`.
-- **DMS (ID `0x18FFEB42`)**
-  - **Active:** all bytes `0x00`.
-  - **Inactive:** byte 5 set to `0x40`, all other bytes `0x00`.
-  - Source: `build_dms_data` in `dms_simulator.py`.
-- **EVCU4 (ID `0x0CFF3F27`)**
-  - **Byte 5:** gear state encoding:
-    - `0x04` = Drive
-    - `0x08` = Neutral (default)
-    - `0x10` = Reverse
-  - **All other bytes:** `0x00`.
-  - Source: `build_evcu4_data` in `dms_simulator.py`.
+### 3) Turn Signals (PGN `0xFE41`, SPN `2369` right / `2367` left)
 
-#### Received frames (reads)
+- Each SPN is 2 bits
+- Values used by app:
+  - `00` = De-activate
+  - `01` = Activate
+- Right turn signal is encoded in byte 2 bits 5-6
+- Left turn signal is encoded in byte 2 bits 7-8
 
-- **DDAW_STATUS1 (ID `0x1803A758`)**
-  - Uses bytes 5–7. Each two-bit field is decoded; a value of `0b01` means “active”.
-  - **Byte 5:**
-    - bits 1–0: Side Looking
-    - bits 3–2: Looking Down
-    - bits 5–4: Closing Eyes
-    - bits 7–6: Yawning
-  - **Byte 6:**
-    - bits 1–0: Fatigue
-    - bits 3–2: Smoking
-    - bits 5–4: Phone
-  - **Byte 7 (optional if present):**
-    - bits 3–0: fatigue level (KSS mapping: `1→5`, `2→7`, `3→9`, other/0 = N/A)
-    - bits 5–4: face detected (active when `0b01`)
-    - bits 7–6: camera tampering (active when `0b01`)
-  - Source: `parse_ddaw_status1_data` in `dms_simulator.py`.
+### 4) Door Position (PGN `0xFE4E`, SPN `1821`)
+
+- Data length: 4 bits
+- App options:
+  - Open -> `0000`
+  - Closing -> `0001`
+  - Closed -> `0010`
+  - Error -> `1110`
+  - Not available -> `1111`
+- Encoded in byte 1 low nibble
+
+## CAN/Hardware Defaults
+
+- Device type: USBCAN-II (`4`)
+- Device index: `0`
+- CAN channel: `0`
+- Bit rate timing: `250 kbps` (`Timing0=0x01`, `Timing1=0x1C`)
+- Frame format: Extended CAN ID (29-bit)
+- Default J1939 priority: `6`
+- Default source address: `0x00`
