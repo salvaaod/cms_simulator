@@ -216,47 +216,57 @@ class SimulatorApp:
         ttk.Checkbutton(main, text="Left turn active", variable=self.turn_left).grid(row=4, column=0, sticky="w")
         ttk.Checkbutton(main, text="Right turn active", variable=self.turn_right).grid(row=4, column=1, sticky="w")
 
-        ttk.Label(main, text="Door position (SPN 1821)").grid(row=5, column=0, sticky="w")
+        ttk.Label(main, text="Enabled PGNs").grid(row=5, column=0, sticky="w")
+        pgn_frame = ttk.Frame(main)
+        pgn_frame.grid(row=5, column=1, sticky="w")
+        self.ccvs_enabled = tk.BooleanVar(value=True)
+        self.etc2_enabled = tk.BooleanVar(value=True)
+        self.lc_enabled = tk.BooleanVar(value=True)
+        self.dc1_enabled = tk.BooleanVar(value=True)
+        ttk.Checkbutton(pgn_frame, text="CCVS", variable=self.ccvs_enabled).grid(row=0, column=0, sticky="w")
+        ttk.Checkbutton(pgn_frame, text="ETC2", variable=self.etc2_enabled).grid(row=0, column=1, sticky="w", padx=(8, 0))
+        ttk.Checkbutton(pgn_frame, text="LC", variable=self.lc_enabled).grid(row=1, column=0, sticky="w")
+        ttk.Checkbutton(pgn_frame, text="DC1", variable=self.dc1_enabled).grid(row=1, column=1, sticky="w", padx=(8, 0))
+
+        ttk.Label(main, text="Door position (SPN 1821)").grid(row=6, column=0, sticky="w")
         self.door_position = tk.StringVar(value="Closed (0010)")
         ttk.Combobox(
             main,
             textvariable=self.door_position,
             values=["Open (0000)", "Closing (0001)", "Closed (0010)", "Error (1110)", "Not available (1111)"],
             state="readonly",
-        ).grid(row=5, column=1, sticky="ew")
+        ).grid(row=6, column=1, sticky="ew")
 
-        ttk.Label(main, text="Send interval (ms)").grid(row=6, column=0, sticky="w")
-        self.interval_ms = tk.IntVar(value=100)
-        ttk.Entry(main, textvariable=self.interval_ms).grid(row=6, column=1, sticky="ew")
+        ttk.Label(main, text="Send interval (ms)").grid(row=7, column=0, sticky="w")
+        self.interval_ms = tk.IntVar(value=250)
+        ttk.Entry(main, textvariable=self.interval_ms).grid(row=7, column=1, sticky="ew")
 
-        ttk.Label(main, text="CCVS ID/Data").grid(row=7, column=0, sticky="w")
+        ttk.Label(main, text="CCVS ID/Data").grid(row=8, column=0, sticky="w")
         self.ccvs_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.ccvs_text).grid(row=7, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.ccvs_text).grid(row=8, column=1, sticky="w")
 
-        ttk.Label(main, text="ETC2 ID/Data").grid(row=8, column=0, sticky="w")
+        ttk.Label(main, text="ETC2 ID/Data").grid(row=9, column=0, sticky="w")
         self.etc2_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.etc2_text).grid(row=8, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.etc2_text).grid(row=9, column=1, sticky="w")
 
-        ttk.Label(main, text="LC ID/Data").grid(row=9, column=0, sticky="w")
+        ttk.Label(main, text="LC ID/Data").grid(row=10, column=0, sticky="w")
         self.lc_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.lc_text).grid(row=9, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.lc_text).grid(row=10, column=1, sticky="w")
 
-        ttk.Label(main, text="DC1 ID/Data").grid(row=10, column=0, sticky="w")
+        ttk.Label(main, text="DC1 ID/Data").grid(row=11, column=0, sticky="w")
         self.dc1_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.dc1_text).grid(row=10, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.dc1_text).grid(row=11, column=1, sticky="w")
 
         buttons = ttk.Frame(main)
-        buttons.grid(row=11, column=0, columnspan=2, pady=8, sticky="ew")
+        buttons.grid(row=12, column=0, columnspan=2, pady=8, sticky="ew")
         self.connect_button = ttk.Button(buttons, text="Connect", command=self.connect)
         self.connect_button.grid(row=0, column=0, padx=4)
         self.disconnect_button = ttk.Button(buttons, text="Disconnect", command=self.disconnect)
         self.disconnect_button.grid(row=0, column=1, padx=4)
-        self.send_once_button = ttk.Button(buttons, text="Transmit Once", command=self.transmit_once)
-        self.send_once_button.grid(row=0, column=2, padx=4)
         self.start_button = ttk.Button(buttons, text="Start Periodic", command=self.start_periodic)
-        self.start_button.grid(row=0, column=3, padx=4)
+        self.start_button.grid(row=0, column=2, padx=4)
         self.stop_button = ttk.Button(buttons, text="Stop Periodic", command=self.stop_periodic)
-        self.stop_button.grid(row=0, column=4, padx=4)
+        self.stop_button.grid(row=0, column=3, padx=4)
 
         self._update_button_states()
         self.refresh_preview()
@@ -300,7 +310,7 @@ class SimulatorApp:
         self.status_text.set("Status: Disconnected")
         self._update_button_states()
 
-    def transmit_once(self) -> None:
+    def _transmit_current_frames(self) -> None:
         if not self.device:
             return
         for frame_id, data in self.current_frames():
@@ -322,11 +332,11 @@ class SimulatorApp:
         try:
             interval = max(10, int(self.interval_ms.get()))
         except tk.TclError:
-            interval = 100
+            interval = 250
         self.send_job = self.root.after(interval, self._send_and_reschedule)
 
     def _send_and_reschedule(self) -> None:
-        self.transmit_once()
+        self._transmit_current_frames()
         self._schedule_send()
 
     def current_ccvs_frame(self) -> tuple[int, list[int]]:
@@ -350,29 +360,37 @@ class SimulatorApp:
         return frame_id, build_dc1_data(self.door_position.get())
 
     def current_frames(self) -> list[tuple[int, list[int]]]:
-        return [
-            self.current_ccvs_frame(),
-            self.current_etc2_frame(),
-            self.current_lc_frame(),
-            self.current_dc1_frame(),
-        ]
+        frames: list[tuple[int, list[int]]] = []
+        if self.ccvs_enabled.get():
+            frames.append(self.current_ccvs_frame())
+        if self.etc2_enabled.get():
+            frames.append(self.current_etc2_frame())
+        if self.lc_enabled.get():
+            frames.append(self.current_lc_frame())
+        if self.dc1_enabled.get():
+            frames.append(self.current_dc1_frame())
+        return frames
+
+    def _format_preview_text(self, enabled: bool, frame_id: int, data: list[int]) -> str:
+        if not enabled:
+            return "Disabled"
+        return f"0x{frame_id:08X} / {' '.join(f'{byte:02X}' for byte in data)}"
 
     def refresh_preview(self) -> None:
         ccvs_id, ccvs_data = self.current_ccvs_frame()
         etc2_id, etc2_data = self.current_etc2_frame()
         lc_id, lc_data = self.current_lc_frame()
         dc1_id, dc1_data = self.current_dc1_frame()
-        self.ccvs_text.set(f"0x{ccvs_id:08X} / {' '.join(f'{b:02X}' for b in ccvs_data)}")
-        self.etc2_text.set(f"0x{etc2_id:08X} / {' '.join(f'{b:02X}' for b in etc2_data)}")
-        self.lc_text.set(f"0x{lc_id:08X} / {' '.join(f'{b:02X}' for b in lc_data)}")
-        self.dc1_text.set(f"0x{dc1_id:08X} / {' '.join(f'{b:02X}' for b in dc1_data)}")
+        self.ccvs_text.set(self._format_preview_text(self.ccvs_enabled.get(), ccvs_id, ccvs_data))
+        self.etc2_text.set(self._format_preview_text(self.etc2_enabled.get(), etc2_id, etc2_data))
+        self.lc_text.set(self._format_preview_text(self.lc_enabled.get(), lc_id, lc_data))
+        self.dc1_text.set(self._format_preview_text(self.dc1_enabled.get(), dc1_id, dc1_data))
         self.root.after(200, self.refresh_preview)
 
     def _update_button_states(self) -> None:
         if self.is_connected:
             self.connect_button.state(["disabled"])
             self.disconnect_button.state(["!disabled"])
-            self.send_once_button.state(["!disabled"])
             if self.send_job is None:
                 self.start_button.state(["!disabled"])
                 self.stop_button.state(["disabled"])
@@ -382,7 +400,6 @@ class SimulatorApp:
         else:
             self.connect_button.state(["!disabled"])
             self.disconnect_button.state(["disabled"])
-            self.send_once_button.state(["disabled"])
             self.start_button.state(["disabled"])
             self.stop_button.state(["disabled"])
 
