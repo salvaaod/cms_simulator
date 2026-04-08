@@ -8,6 +8,7 @@
 - **Gear**: PGN `0xF005` / SPN `523` (Transmission Current Gear)
 - **Turn Signals**: PGN `0xFE41` / SPN `2369` (Right), SPN `2367` (Left)
 - **Open Doors**: PGN `0xFE4E` / SPN `1821` (Position of Doors)
+- **Class IV/V View Switching**: PGN `0xFF00` (Camera View Command in byte 0)
 
 All older simulated parameters/frames were removed from the simulator UI and transmit loop.
 
@@ -21,7 +22,7 @@ python dms_simulator.py
 ```
 
 3. Click **Connect**.
-4. Set the values for speed, gear, turn signals, and door position.
+4. Set the values for speed, gear, turn signals, door position, and Class IV/V camera command.
 5. Use **Transmit Once** or **Start Periodic**.
 
 ## J1939 Encoding Used
@@ -63,6 +64,14 @@ python dms_simulator.py
   - Error -> `1110`
   - Not available -> `1111`
 - Encoded in byte 1 low nibble
+
+### 5) Class IV/V View Switching (PGN `0xFF00`)
+
+- Data length: 8 bytes
+- Camera View Command encoded in byte 0:
+  - `0x00` = Retain
+  - `0x04` = Switch to Class IV camera view
+  - `0x05` = Switch to Class V camera view
 
 ## CAN/Hardware Defaults
 
