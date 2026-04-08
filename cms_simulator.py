@@ -193,7 +193,7 @@ class USBCANDevice:
 class SimulatorApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
-        self.root.title("J1939 CAN Simulator")
+        self.root.title("CMS CAN Simulator")
         self.device: USBCANDevice | None = None
         self.send_job: str | None = None
         self.is_connected = False

@@ -1,8 +1,8 @@
-# dms_simulator
+# cms_simulator
 
-## J1939 USB-CAN Simulator
+## CMS CAN Simulator (J1939-based)
 
-`dms_simulator.py` now simulates only the following J1939 parameters:
+`cms_simulator.py` simulates the following CMS CAN signals over the underlying J1939 protocol:
 
 - **Speed**: PGN `0xFEF1` / SPN `84` (Wheel-Based Vehicle Speed)
 - **Gear**: PGN `0xF005` / SPN `523` (Transmission Current Gear)
@@ -10,20 +10,20 @@
 - **Open Doors**: PGN `0xFE4E` / SPN `1821` (Position of Doors)
 - **Class IV/V View Switching**: PGN `0xFF00` (Camera View Command in byte 0)
 
-All older simulated parameters/frames were removed from the simulator UI and transmit loop.
+The simulator UI and transmit loop are focused on the signals above.
 
 ## Usage
 
-1. Place `ECanVci.dll` next to `dms_simulator.py` (or provide a full DLL path in the app).
+1. Place `ECanVci.dll` next to `cms_simulator.py` (or provide a full DLL path in the app).
 2. Run on Windows:
 
 ```bash
-python dms_simulator.py
+python cms_simulator.py
 ```
 
 3. Click **Connect**.
 4. Set the values for speed, gear, turn signals, door position, and Class IV/V camera command.
-5. Use **Transmit Once** or **Start Periodic**.
+5. Use **Start Periodic** to begin transmission and **Stop Periodic** to stop.
 
 ## J1939 Encoding Used
 
