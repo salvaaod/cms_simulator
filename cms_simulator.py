@@ -217,20 +217,24 @@ class SimulatorApp:
         self.speed_kmh = tk.StringVar(value="0")
         ttk.Entry(main, textvariable=self.speed_kmh).grid(row=2, column=1, sticky="ew")
 
-        ttk.Label(main, text="Gear (SPN 523)").grid(row=3, column=0, sticky="w")
+        ttk.Label(main, text="Source address (0-255 or 0x00-0xFF)").grid(row=3, column=0, sticky="w")
+        self.source_address = tk.StringVar(value=f"0x{SOURCE_ADDRESS:02X}")
+        ttk.Entry(main, textvariable=self.source_address).grid(row=3, column=1, sticky="ew")
+
+        ttk.Label(main, text="Gear (SPN 523)").grid(row=4, column=0, sticky="w")
         self.gear = tk.StringVar(value="Neutral")
         ttk.Combobox(main, textvariable=self.gear, values=["Reverse", "Neutral", "Drive", "Park"], state="readonly").grid(
-            row=3, column=1, sticky="ew"
+            row=4, column=1, sticky="ew"
         )
 
         self.turn_left = tk.BooleanVar(value=False)
         self.turn_right = tk.BooleanVar(value=False)
-        ttk.Checkbutton(main, text="Left turn active", variable=self.turn_left).grid(row=4, column=0, sticky="w")
-        ttk.Checkbutton(main, text="Right turn active", variable=self.turn_right).grid(row=4, column=1, sticky="w")
+        ttk.Checkbutton(main, text="Left turn active", variable=self.turn_left).grid(row=5, column=0, sticky="w")
+        ttk.Checkbutton(main, text="Right turn active", variable=self.turn_right).grid(row=5, column=1, sticky="w")
 
-        ttk.Label(main, text="Enabled PGNs").grid(row=5, column=0, sticky="w")
+        ttk.Label(main, text="Enabled PGNs").grid(row=6, column=0, sticky="w")
         pgn_frame = ttk.Frame(main)
-        pgn_frame.grid(row=5, column=1, sticky="w")
+        pgn_frame.grid(row=6, column=1, sticky="w")
         self.ccvs_enabled = tk.BooleanVar(value=True)
         self.etc2_enabled = tk.BooleanVar(value=True)
         self.lc_enabled = tk.BooleanVar(value=True)
@@ -244,50 +248,50 @@ class SimulatorApp:
             row=2, column=0, sticky="w", columnspan=2
         )
 
-        ttk.Label(main, text="Door position (SPN 1821)").grid(row=6, column=0, sticky="w")
+        ttk.Label(main, text="Door position (SPN 1821)").grid(row=7, column=0, sticky="w")
         self.door_position = tk.StringVar(value="Closed (0010)")
         ttk.Combobox(
             main,
             textvariable=self.door_position,
             values=["Open (0000)", "Closing (0001)", "Closed (0010)", "Error (1110)", "Not available (1111)"],
             state="readonly",
-        ).grid(row=6, column=1, sticky="ew")
+        ).grid(row=7, column=1, sticky="ew")
 
-        ttk.Label(main, text="Class IV/V camera command").grid(row=7, column=0, sticky="w")
+        ttk.Label(main, text="Class IV/V camera command").grid(row=8, column=0, sticky="w")
         self.camera_view_command = tk.StringVar(value="Retain (0x00)")
         ttk.Combobox(
             main,
             textvariable=self.camera_view_command,
             values=["Retain (0x00)", "Switch to Class IV (0x04)", "Switch to Class V (0x05)"],
             state="readonly",
-        ).grid(row=7, column=1, sticky="ew")
+        ).grid(row=8, column=1, sticky="ew")
 
-        ttk.Label(main, text="Send interval (ms)").grid(row=8, column=0, sticky="w")
+        ttk.Label(main, text="Send interval (ms)").grid(row=9, column=0, sticky="w")
         self.interval_ms = tk.IntVar(value=250)
-        ttk.Entry(main, textvariable=self.interval_ms).grid(row=8, column=1, sticky="ew")
+        ttk.Entry(main, textvariable=self.interval_ms).grid(row=9, column=1, sticky="ew")
 
-        ttk.Label(main, text="CCVS ID/Data").grid(row=9, column=0, sticky="w")
+        ttk.Label(main, text="CCVS ID/Data").grid(row=10, column=0, sticky="w")
         self.ccvs_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.ccvs_text).grid(row=9, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.ccvs_text).grid(row=10, column=1, sticky="w")
 
-        ttk.Label(main, text="ETC2 ID/Data").grid(row=10, column=0, sticky="w")
+        ttk.Label(main, text="ETC2 ID/Data").grid(row=11, column=0, sticky="w")
         self.etc2_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.etc2_text).grid(row=10, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.etc2_text).grid(row=11, column=1, sticky="w")
 
-        ttk.Label(main, text="LC ID/Data").grid(row=11, column=0, sticky="w")
+        ttk.Label(main, text="LC ID/Data").grid(row=12, column=0, sticky="w")
         self.lc_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.lc_text).grid(row=11, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.lc_text).grid(row=12, column=1, sticky="w")
 
-        ttk.Label(main, text="DC1 ID/Data").grid(row=12, column=0, sticky="w")
+        ttk.Label(main, text="DC1 ID/Data").grid(row=13, column=0, sticky="w")
         self.dc1_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.dc1_text).grid(row=12, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.dc1_text).grid(row=13, column=1, sticky="w")
 
-        ttk.Label(main, text="Class IV/V ID/Data").grid(row=13, column=0, sticky="w")
+        ttk.Label(main, text="Class IV/V ID/Data").grid(row=14, column=0, sticky="w")
         self.class_iv_v_text = tk.StringVar(value="")
-        ttk.Label(main, textvariable=self.class_iv_v_text).grid(row=13, column=1, sticky="w")
+        ttk.Label(main, textvariable=self.class_iv_v_text).grid(row=14, column=1, sticky="w")
 
         buttons = ttk.Frame(main)
-        buttons.grid(row=14, column=0, columnspan=2, pady=8, sticky="ew")
+        buttons.grid(row=15, column=0, columnspan=2, pady=8, sticky="ew")
         self.connect_button = ttk.Button(buttons, text="Connect", command=self.connect)
         self.connect_button.grid(row=0, column=0, padx=4)
         self.disconnect_button = ttk.Button(buttons, text="Disconnect", command=self.disconnect)
@@ -368,8 +372,18 @@ class SimulatorApp:
         self._transmit_current_frames()
         self._schedule_send()
 
+    def current_source_address(self) -> int:
+        text = self.source_address.get().strip()
+        if not text:
+            return SOURCE_ADDRESS
+        try:
+            value = int(text, 0)
+        except ValueError:
+            return SOURCE_ADDRESS
+        return max(0, min(value, 0xFF))
+
     def current_ccvs_frame(self) -> tuple[int, list[int]]:
-        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_CCVS, SOURCE_ADDRESS)
+        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_CCVS, self.current_source_address())
         try:
             speed = float(self.speed_kmh.get().strip())
         except ValueError:
@@ -377,19 +391,19 @@ class SimulatorApp:
         return frame_id, build_ccvs_data(speed)
 
     def current_etc2_frame(self) -> tuple[int, list[int]]:
-        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_ETC2, SOURCE_ADDRESS)
+        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_ETC2, self.current_source_address())
         return frame_id, build_etc2_data(self.gear.get())
 
     def current_lc_frame(self) -> tuple[int, list[int]]:
-        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_LC, SOURCE_ADDRESS)
+        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_LC, self.current_source_address())
         return frame_id, build_lc_data(self.turn_left.get(), self.turn_right.get())
 
     def current_dc1_frame(self) -> tuple[int, list[int]]:
-        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_DC1, SOURCE_ADDRESS)
+        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_DC1, self.current_source_address())
         return frame_id, build_dc1_data(self.door_position.get())
 
     def current_class_iv_v_frame(self) -> tuple[int, list[int]]:
-        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_CLASS_IV_V_SWITCH, SOURCE_ADDRESS)
+        frame_id = j1939_id(PRIORITY_DEFAULT, PGN_CLASS_IV_V_SWITCH, self.current_source_address())
         return frame_id, build_class_iv_v_switch_data(self.camera_view_command.get())
 
     def current_frames(self) -> list[tuple[int, list[int]]]:
